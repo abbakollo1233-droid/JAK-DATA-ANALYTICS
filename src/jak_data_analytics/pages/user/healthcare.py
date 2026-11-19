@@ -31,15 +31,6 @@ import pandas as pd
 import numpy as np
 
 from datetime import datetime
-import html
-
-from ...ui.layout import (
-    render_topbar,
-    render_page_intro,
-    render_section_heading,
-)
-
-from ...ui.theme import show_footer
 
 from ...domain_modules.healthcare import (
     DISEASE_REGISTRY,
@@ -69,6 +60,20 @@ from ...domain_modules.healthcare.symptom_prediction_engine import (
     get_urgent_warning_flags,
 )
 
+
+# ==========================================
+# NATIVE STREAMLIT LAYOUT HELPERS
+# ==========================================
+
+def render_section_heading(title, description=None):
+    """Render page headings with native Streamlit components (no HTML)."""
+    st.subheader(str(title))
+    if description:
+        st.caption(str(description))
+
+def show_footer():
+    st.divider()
+    st.caption("JAK Data Analytics • JAK Health Intelligence")
 
 # ==========================================
 # CONSTANTS
@@ -186,29 +191,6 @@ def apply_healthcare_design():
         border-radius: 12px;
     }
 
-    .jak-healthcare-banner {
-        background: linear-gradient(
-            120deg,
-            #064e2b,
-            #087f3f
-        );
-        padding: 30px;
-        border-radius: 18px;
-        color: white;
-        margin-bottom: 22px;
-    }
-
-    .jak-healthcare-banner h2 {
-        color: white;
-        font-weight: 800;
-        margin-bottom: 8px;
-    }
-
-    .jak-healthcare-banner p {
-        color: #dcfce7;
-        margin-bottom: 0;
-    }
-
     .jak-dataset-card {
         background: white;
         border: 1px solid #e8edf5;
@@ -220,27 +202,6 @@ def apply_healthcare_design():
     .jak-muted {
         color: #667085;
         font-size: 13px;
-    }
-
-    .jak-prediction-card {
-        background: #ffffff;
-        border: 1px solid #e8edf5;
-        border-radius: 15px;
-        padding: 20px;
-        margin-bottom: 12px;
-    }
-
-    .jak-prediction-number {
-        color: #087f3f;
-        font-size: 13px;
-        font-weight: 700;
-    }
-
-    .jak-prediction-title {
-        color: #101828;
-        font-size: 21px;
-        font-weight: 800;
-        margin-top: 5px;
     }
 
     .jak-safety-note {
@@ -634,30 +595,18 @@ def delete_healthcare_dataset(dataset_name, source):
 # ==========================================
 
 def render_healthcare_header():
-
-    render_topbar(
-        username="Healthcare Workspace",
-        role="Medical Analytics",
-    )
-
-    st.markdown("""
-    <div class="jak-healthcare-banner">
-
-        <h2>JAK Health Intelligence</h2>
-
-        <p>
-            Healthcare data analysis, machine learning,
-            symptom-based disease classification and medical insights.
-        </p>
-
-    </div>
-    """, unsafe_allow_html=True)
-
+    """Modern healthcare header built entirely with native Streamlit UI."""
+    with st.container(border=True):
+        st.caption("JAK DATA ANALYTICS  /  HEALTHCARE WORKSPACE")
+        st.title("JAK Health Intelligence")
+        st.write(
+            "Healthcare data analysis, experimental machine learning, "
+            "symptom-based classification and medical insights."
+        )
     st.warning(
-        "Medical safety notice: This is an experimental "
-        "machine-learning application. Its predictions are not "
-        "confirmed diagnoses and must not replace professional "
-        "medical assessment."
+        "Medical safety notice: This is an experimental machine-learning "
+        "application. Its predictions are not confirmed diagnoses and must "
+        "not replace professional medical assessment."
     )
 
 
@@ -2244,35 +2193,14 @@ def render_prediction_results(saved_prediction, selected_key):
 
         first = ranked_frame.iloc[0]
 
-        safe_disease = html.escape(
-            str(first["disease"])
-        )
-
-        st.markdown(
-            f"""
-            <div class="jak-prediction-card">
-
-                <div class="jak-prediction-number">
-                    TOP-RANKED MODEL SUGGESTION
-                </div>
-
-                <div class="jak-prediction-title">
-                    {safe_disease}
-                </div>
-
-                <p>
-                    Model score:
-                    {(
-                        f"{first['model_score'] * 100:.2f}%"
-                        if pd.notna(first.get("model_score"))
-                        else "Not supplied by this model"
-                    )}
-                </p>
-
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        with st.container(border=True):
+            st.caption("TOP-RANKED MODEL SUGGESTION")
+            st.subheader(str(first["disease"]))
+            score = first.get("model_score")
+            st.metric(
+                "Experimental model score",
+                f"{float(score) * 100:.2f}%" if pd.notna(score) else "Not supplied",
+            )
 
     st.markdown("### Top Disease Suggestions")
 
@@ -2847,31 +2775,13 @@ def render_symptom_prediction_results():
 
     top = results.iloc[0]
 
-    safe_label = html.escape(
-        str(top["Disease label"])
-    )
-
-    st.markdown(
-        f"""
-        <div class="jak-prediction-card">
-
-            <div class="jak-prediction-number">
-                TOP-RANKED MODEL CLASSIFICATION
-            </div>
-
-            <div class="jak-prediction-title">
-                {safe_label}
-            </div>
-
-            <p>
-                Model score:
-                {top['Model score'] * 100:.2f}%
-            </p>
-
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    with st.container(border=True):
+        st.caption("TOP-RANKED MODEL CLASSIFICATION")
+        st.subheader(str(top["Disease label"]))
+        st.metric(
+            "Experimental model score",
+            f"{float(top['Model score']) * 100:.2f}%",
+        )
 
     st.caption(
         "The displayed score is an experimental model score. "
