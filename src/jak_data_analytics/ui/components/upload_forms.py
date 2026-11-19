@@ -1,8 +1,19 @@
+
 """
 JAK Data Analytics
-Dataset Upload Component
+Modern Responsive Dataset Upload Component
 
-Handles dataset uploads, validation and file reading.
+Features:
+- Modern dataset upload interface
+- CSV, Excel, JSON and Parquet support
+- File validation
+- File size validation
+- Automatic dataset reading
+- Dataset preview
+- Responsive statistics
+- Improved error handling
+
+Compatible with Streamlit.
 """
 
 import streamlit as st
@@ -14,28 +25,24 @@ from ...config.constants import (
 )
 
 
-# =====================================
+# =====================================================
 # FILE VALIDATION
-# =====================================
+# =====================================================
 
 def validate_uploaded_file(uploaded_file):
-    """
-    Validate an uploaded dataset.
-    """
+    """Validate an uploaded dataset."""
 
     if uploaded_file is None:
         return False, "No file was selected."
 
     filename = uploaded_file.name.lower()
 
-    # Check file extension
     if not any(
         filename.endswith(extension)
         for extension in SUPPORTED_FILE_FORMATS
     ):
         return False, "This file format is not supported."
 
-    # Check file size
     max_size = MAX_UPLOAD_SIZE_MB * 1024 * 1024
 
     if uploaded_file.size > max_size:
@@ -44,21 +51,22 @@ def validate_uploaded_file(uploaded_file):
             f"{MAX_UPLOAD_SIZE_MB} MB."
         )
 
+    if uploaded_file.size == 0:
+        return False, "The selected file is empty."
+
     return True, "File validation successful."
 
 
-# =====================================
+# =====================================================
 # READ CSV FILE
-# =====================================
+# =====================================================
 
 def read_csv_file(uploaded_file):
-    """
-    Read CSV files with common encoding support.
-    """
+    """Read CSV files with common encoding support."""
+
+    uploaded_file.seek(0)
 
     try:
-        uploaded_file.seek(0)
-
         return pd.read_csv(
             uploaded_file,
             encoding="utf-8-sig"
@@ -74,56 +82,48 @@ def read_csv_file(uploaded_file):
         )
 
 
-# =====================================
+# =====================================================
 # READ EXCEL FILE
-# =====================================
+# =====================================================
 
 def read_excel_file(uploaded_file):
-    """
-    Read Excel workbooks.
-    """
+    """Read Excel workbooks."""
 
     uploaded_file.seek(0)
 
     return pd.read_excel(uploaded_file)
 
 
-# =====================================
+# =====================================================
 # READ JSON FILE
-# =====================================
+# =====================================================
 
 def read_json_file(uploaded_file):
-    """
-    Read JSON datasets.
-    """
+    """Read JSON datasets."""
 
     uploaded_file.seek(0)
 
     return pd.read_json(uploaded_file)
 
 
-# =====================================
+# =====================================================
 # READ PARQUET FILE
-# =====================================
+# =====================================================
 
 def read_parquet_file(uploaded_file):
-    """
-    Read Parquet datasets.
-    """
+    """Read Parquet datasets."""
 
     uploaded_file.seek(0)
 
     return pd.read_parquet(uploaded_file)
 
 
-# =====================================
+# =====================================================
 # DATASET READER
-# =====================================
+# =====================================================
 
 def read_uploaded_dataset(uploaded_file):
-    """
-    Detect the uploaded file format and read it.
-    """
+    """Automatically detect and read uploaded datasets."""
 
     filename = uploaded_file.name.lower()
 
@@ -147,10 +147,14 @@ def read_uploaded_dataset(uploaded_file):
 
         else:
 
-            raise ValueError("Unsupported file format.")
+            raise ValueError(
+                "Unsupported file format."
+            )
 
         if data.empty:
-            raise ValueError("The uploaded dataset is empty.")
+            raise ValueError(
+                "The uploaded dataset is empty."
+            )
 
         return data
 
@@ -161,28 +165,158 @@ def read_uploaded_dataset(uploaded_file):
         ) from error
 
 
-# =====================================
+# =====================================================
+# UPLOAD INFORMATION
+# =====================================================
+
+def render_upload_information():
+
+    with st.container(border=True):
+
+        st.markdown("### 📂 Upload your dataset")
+
+        st.write(
+            "Bring your data into JAK Data Analytics "
+            "to clean, explore, visualize and analyse it."
+        )
+
+        formats = [
+            extension.replace(".", "").upper()
+            for extension in SUPPORTED_FILE_FORMATS
+        ]
+
+        st.caption(
+            "Supported formats: "
+            + " • ".join(formats)
+        )
+
+        st.caption(
+            f"Maximum upload size: {MAX_UPLOAD_SIZE_MB} MB"
+        )
+
+
+# =====================================================
+# DATASET STATISTICS
+# =====================================================
+
+def render_dataset_statistics(data):
+
+    rows, columns = data.shape
+
+    missing = int(
+        data.isna().sum().sum()
+    )
+
+    duplicate = int(
+        data.duplicated().sum()
+    )
+
+    stat_columns = st.columns(2)
+
+    with stat_columns[0]:
+
+        with st.container(border=True):
+
+            st.caption("TOTAL ROWS")
+
+            st.metric(
+                "Rows",
+                f"{rows:,}"
+            )
+
+    with stat_columns[1]:
+
+        with st.container(border=True):
+
+            st.caption("TOTAL COLUMNS")
+
+            st.metric(
+                "Columns",
+                f"{columns:,}"
+            )
+
+    stat_columns = st.columns(2)
+
+    with stat_columns[0]:
+
+        with st.container(border=True):
+
+            st.caption("MISSING VALUES")
+
+            st.metric(
+                "Missing",
+                f"{missing:,}"
+            )
+
+    with stat_columns[1]:
+
+        with st.container(border=True):
+
+            st.caption("DUPLICATE ROWS")
+
+            st.metric(
+                "Duplicates",
+                f"{duplicate:,}"
+            )
+
+
+# =====================================================
+# DATASET PREVIEW
+# =====================================================
+
+def render_dataset_preview(data):
+
+    st.markdown("### 👁️ Dataset Preview")
+
+    st.caption(
+        "Review the first 10 records in your dataset."
+    )
+
+    st.dataframe(
+        data.head(10),
+        use_container_width=True,
+        hide_index=True
+    )
+
+    with st.expander("View column information"):
+
+        column_information = pd.DataFrame({
+            "Column": data.columns.astype(str),
+            "Data Type": data.dtypes.astype(str).values,
+            "Missing Values": data.isna().sum().values,
+            "Unique Values": data.nunique().values
+        })
+
+        st.dataframe(
+            column_information,
+            use_container_width=True,
+            hide_index=True
+        )
+
+
+# =====================================================
 # DATASET UPLOAD FORM
-# =====================================
+# =====================================================
 
 def render_upload_form():
-
     """
-    Display the dataset upload interface.
+    Display the modern responsive dataset upload interface.
 
     Returns:
         pandas.DataFrame or None
     """
 
-    st.subheader("Upload Your Dataset")
+    st.subheader("Import Dataset")
 
-    st.write(
-        "Select a dataset from your computer "
-        "to begin analysing it with JAK."
+    st.caption(
+        "Upload a dataset to activate the JAK "
+        "data analytics workspace."
     )
 
+    render_upload_information()
+
     uploaded_file = st.file_uploader(
-        "Choose a dataset",
+        "Select your dataset",
         type=[
             extension.replace(".", "")
             for extension in SUPPORTED_FILE_FORMATS
@@ -190,18 +324,23 @@ def render_upload_form():
         accept_multiple_files=False,
         help=(
             f"Maximum file size: {MAX_UPLOAD_SIZE_MB} MB"
-        )
+        ),
+        key="jak_responsive_dataset_upload"
     )
 
     if uploaded_file is None:
 
         st.info(
-            "Supported formats: CSV, Excel, JSON and Parquet."
+            "Choose a CSV, Excel, JSON or Parquet file "
+            "to get started."
         )
 
         return None
 
-    # Validate uploaded file
+    # -------------------------------------------------
+    # VALIDATION
+    # -------------------------------------------------
+
     is_valid, message = validate_uploaded_file(
         uploaded_file
     )
@@ -213,39 +352,58 @@ def render_upload_form():
         return None
 
     st.success(
-        f"File selected: {uploaded_file.name}"
+        f"Selected: {uploaded_file.name}"
+    )
+
+    file_size = (
+        uploaded_file.size / (1024 * 1024)
     )
 
     st.caption(
-        f"File size: {uploaded_file.size / (1024 * 1024):.2f} MB"
+        f"File size: {file_size:.2f} MB"
     )
 
-    # Read dataset
+    # -------------------------------------------------
+    # READ DATASET
+    # -------------------------------------------------
+
     try:
 
-        with st.spinner("Reading your dataset..."):
+        with st.spinner(
+            "Importing and analysing dataset structure..."
+        ):
 
-            data = read_uploaded_dataset(uploaded_file)
+            data = read_uploaded_dataset(
+                uploaded_file
+            )
 
-        st.success("Dataset loaded successfully!")
-
-        st.markdown("### Dataset Preview")
-
-        st.dataframe(
-            data.head(10),
-            use_container_width=True,
-            hide_index=True
+        st.success(
+            "Your dataset has been imported successfully!"
         )
 
-        st.info(
-            f"Dataset contains {data.shape[0]:,} rows "
-            f"and {data.shape[1]:,} columns."
+        # Dataset statistics
+        render_dataset_statistics(data)
+
+        # Dataset preview
+        render_dataset_preview(data)
+
+        st.divider()
+
+        st.success(
+            "Your dataset is ready for further analysis."
         )
 
         return data
 
     except Exception as error:
 
-        st.error(str(error))
+        st.error(
+            f"Dataset import failed: {error}"
+        )
 
         return None
+
+
+# =====================================================
+# END OF UPLOAD COMPONENT
+# =====================================================
