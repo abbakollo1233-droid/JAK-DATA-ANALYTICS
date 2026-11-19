@@ -81,7 +81,7 @@ st.markdown(
     [data-testid="stSidebarCollapseButton"] button::after,
     [data-testid="stSidebarCollapsedControl"]::after,
     [data-testid="stSidebarCollapsedControl"] button::after {
-        content: "☰";
+        content: " ";
         display: inline-block;
         color: #FFFFFF;
         font-family: Arial, sans-serif;
