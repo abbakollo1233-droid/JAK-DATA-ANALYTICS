@@ -23,7 +23,7 @@ st.set_page_config(
     page_title="JAK Data Analytics",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="auto"
 )
 
 # ============================================================
@@ -335,22 +335,171 @@ header[data-testid="stHeader"] {
     font-size: 11px;
 }
 
-/* RESPONSIVE */
+/* FORM CONTROLS: SELECTS, DROPDOWNS AND INPUTS */
 
-@media (max-width: 768px) {
+.stSelectbox [data-baseweb="select"] > div,
+.stMultiSelect [data-baseweb="select"] > div {
+    min-height: 44px;
+    border-radius: 10px;
+    border-color: #D7DEE8;
+}
+
+[data-baseweb="popover"],
+[data-baseweb="menu"],
+[role="listbox"] {
+    max-width: min(92vw, 520px);
+}
+
+.stTextInput input,
+.stNumberInput input,
+.stDateInput input,
+.stTimeInput input,
+.stTextArea textarea {
+    border-radius: 10px;
+}
+
+[data-testid="stFileUploader"] {
+    width: 100%;
+    border-radius: 14px;
+}
+
+[data-testid="stDataFrame"],
+[data-testid="stTable"] {
+    max-width: 100%;
+}
+
+/* RESPONSIVE TABLET AND MOBILE LAYOUT */
+
+@media (max-width: 900px) {
+    .block-container {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+        padding-top: 1.25rem;
+    }
+
+    [data-testid="stHorizontalBlock"] {
+        flex-wrap: wrap;
+        gap: 0.8rem;
+    }
+
+    [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+        min-width: min(45%, 260px) !important;
+        flex: 1 1 calc(50% - 0.8rem) !important;
+    }
 
     .hero-card {
-        padding: 22px;
+        padding: 25px;
+    }
+}
+
+@media (max-width: 640px) {
+    .block-container {
+        padding: 0.9rem 0.8rem 2rem 0.8rem;
+    }
+
+    [data-testid="stHorizontalBlock"] {
+        flex-direction: column !important;
+        gap: 0.65rem;
+    }
+
+    [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+
+    .hero-card {
+        padding: 20px 17px;
+        border-radius: 15px;
+        margin-bottom: 18px;
     }
 
     .hero-card h2 {
-        font-size: 22px;
+        font-size: 21px;
+        line-height: 1.3;
+    }
+
+    .hero-card p {
+        font-size: 13px;
+    }
+
+    .hero-badge {
+        font-size: 9px;
+        letter-spacing: 0.6px;
     }
 
     .page-heading {
-        font-size: 25px;
+        font-size: 24px;
+        line-height: 1.25;
     }
 
+    .page-description {
+        font-size: 12px;
+        margin-bottom: 18px;
+    }
+
+    .section-title {
+        font-size: 17px;
+        margin-top: 22px;
+    }
+
+    [data-testid="stMetric"] {
+        padding: 13px;
+        border-radius: 12px;
+    }
+
+    [data-testid="stMetricValue"] {
+        font-size: 1.45rem;
+    }
+
+    .stButton > button,
+    .stDownloadButton > button,
+    .stFormSubmitButton > button {
+        min-height: 46px;
+        width: 100%;
+        border-radius: 11px;
+        white-space: normal;
+    }
+
+    .stSelectbox,
+    .stMultiSelect,
+    .stTextInput,
+    .stNumberInput,
+    .stDateInput,
+    .stTimeInput,
+    .stTextArea,
+    .stFileUploader {
+        width: 100%;
+    }
+
+    [data-testid="stSidebar"] {
+        min-width: 0;
+        max-width: 88vw;
+    }
+
+    .brand-title {
+        font-size: 20px;
+    }
+
+    .app-footer {
+        margin-top: 28px;
+        padding: 18px 8px;
+        font-size: 10px;
+    }
+
+    [data-testid="stDataFrame"] {
+        overflow-x: auto;
+    }
+}
+
+/* ACCESSIBILITY: CLEAR KEYBOARD FOCUS */
+
+.stButton > button:focus-visible,
+.stSelectbox [data-baseweb="select"]:focus-within,
+.stTextInput input:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.25);
+    outline-offset: 2px;
 }
 
 </style>
@@ -408,6 +557,7 @@ with st.sidebar:
         <div class="brand-logo">📊</div>
         <div class="brand-title">JAK Analytics</div>
         <div class="brand-subtitle">DATA INTELLIGENCE PLATFORM</div>
+    </div>
     """,
     unsafe_allow_html=True
 )
@@ -518,17 +668,19 @@ def render_dashboard():
 
     st.markdown(
     """
-    <div class="hero-badge">
-        YOUR DATA INTELLIGENCE WORKSPACE
+    <div class="hero-card">
+        <div class="hero-badge">
+            YOUR DATA INTELLIGENCE WORKSPACE
+        </div>
+
+        <h2>Welcome to JAK Data Analytics 👋</h2>
+
+        <p>
+            Transform raw data into meaningful insights.
+            Explore your datasets, discover patterns,
+            build predictive models and make smarter decisions.
+        </p>
     </div>
-
-    <h2>Welcome to JAK Data Analytics 👋</h2>
-
-    <p>
-        Transform raw data into meaningful insights.
-        Explore your datasets, discover patterns,
-        build predictive models and make smarter decisions.
-    </p>
     """,
     unsafe_allow_html=True
 )
