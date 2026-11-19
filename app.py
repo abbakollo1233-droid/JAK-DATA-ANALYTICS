@@ -60,7 +60,19 @@ st.markdown("""
 @import url(
 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'
 );
+/* Replace sidebar dropdown arrow with menu icon */
+[data-testid="stSidebarCollapseButton"] svg,
+[data-testid="stSidebarCollapsedControl"] svg {
+    display: none !important;
+}
 
+[data-testid="stSidebarCollapseButton"] button::before,
+[data-testid="stSidebarCollapsedControl"] button::before {
+    content: "☰";
+    font-size: 23px;
+    font-weight: bold;
+    line-height: 1;
+}
 :root {
     --primary: #2563EB;
     --primary-dark: #1D4ED8;
