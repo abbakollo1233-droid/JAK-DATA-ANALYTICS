@@ -75,6 +75,64 @@ def show_footer():
     st.divider()
     st.caption("JAK Data Analytics • JAK Health Intelligence")
 
+
+def render_modern_bar_chart(data, category, value, height=320, color="#16a34a"):
+    """Render a styled Vega-Lite bar chart with visible, subtle grid lines."""
+    if not isinstance(data, pd.DataFrame) or data.empty:
+        st.info("There is no chart data to display yet.")
+        return
+
+    chart_spec = {
+        "mark": {
+            "type": "bar",
+            "cornerRadiusEnd": 7,
+            "tooltip": True,
+            "color": color,
+        },
+        "encoding": {
+            "y": {
+                "field": category,
+                "type": "nominal",
+                "sort": "-x",
+                "axis": {
+                    "title": None,
+                    "labelColor": "#344054",
+                    "labelFontSize": 12,
+                    "labelLimit": 240,
+                    "domain": False,
+                    "ticks": False,
+                },
+            },
+            "x": {
+                "field": value,
+                "type": "quantitative",
+                "axis": {
+                    "title": None,
+                    "labelColor": "#667085",
+                    "labelFontSize": 11,
+                    "grid": True,
+                    "gridColor": "#e4eaf2",
+                    "gridOpacity": 1,
+                    "domain": False,
+                    "tickColor": "#d0d5dd",
+                },
+            },
+            "tooltip": [
+                {"field": category, "type": "nominal", "title": "Category"},
+                {"field": value, "type": "quantitative", "title": "Value", "format": ".2f"},
+            ],
+        },
+        "height": height,
+        "width": "container",
+        "config": {
+            "background": "#ffffff",
+            "view": {"stroke": "#eef2f6", "strokeWidth": 1},
+            "axis": {"labelFont": "Inter", "titleFont": "Inter"},
+        },
+    }
+    st.vega_lite_chart(data, chart_spec, use_container_width=True)
+
+
 # ==========================================
 # CONSTANTS
 # ==========================================
@@ -218,6 +276,28 @@ def apply_healthcare_design():
         padding: 14px;
         border-radius: 8px;
         margin: 12px 0;
+    }
+
+
+    div[data-testid="stVegaLiteChart"] {
+        background: #ffffff;
+        border: 1px solid #e7edf4;
+        border-radius: 16px;
+        padding: 14px 12px 8px;
+        box-shadow: 0 5px 18px rgba(16, 24, 40, 0.045);
+        overflow: hidden;
+    }
+
+    div[data-testid="stPlotlyChart"],
+    div[data-testid="stArrowVegaLiteChart"] {
+        border-radius: 16px;
+    }
+
+    div[data-testid="stTabs"] {
+        background: #ffffff;
+        border: 1px solid #e7edf4;
+        border-radius: 15px;
+        padding: 8px 12px 12px;
     }
 
     </style>
@@ -1708,8 +1788,8 @@ def render_model_evaluation(model_bundle):
         ],
     })
 
-    st.bar_chart(
-        performance_frame.set_index("Metric")
+    render_modern_bar_chart(
+        performance_frame, "Metric", "Score", height=260, color="#0f9f6e"
     )
 
     st.write("**Model Information**")
@@ -2059,10 +2139,11 @@ def render_prediction_charts(ranked_frame):
     chart_frame["model_score_percent"] = chart_frame["model_score"] * 100
 
     st.markdown("### Ranked Suggestion Comparison")
-    st.bar_chart(
-        chart_frame.set_index("disease")[["model_score_percent"]],
-        horizontal=True,
-        use_container_width=True,
+    render_modern_bar_chart(
+        chart_frame[["disease", "model_score_percent"]].rename(
+            columns={"disease": "Disease", "model_score_percent": "Score (%)"}
+        ),
+        "Disease", "Score (%)", height=300, color="#16a34a"
     )
 
     st.markdown("### Relative Distribution of Displayed Model Scores")
@@ -2113,7 +2194,11 @@ def render_prediction_charts(ranked_frame):
             histogram["Score Range"] = histogram["Score Range"].astype(str)
             histogram = histogram.set_index("Score Range")
 
-        st.bar_chart(histogram, use_container_width=True)
+        histogram_data = histogram.reset_index()
+        render_modern_bar_chart(
+            histogram_data, histogram_data.columns[0], histogram_data.columns[1],
+            height=250, color="#3b82f6"
+        )
 
     st.caption(
         "The histogram describes displayed model scores, not disease prevalence."
@@ -2468,10 +2553,11 @@ def render_symptom_prediction_charts(results):
         ["Disease label", "Model score (%)"]
     ].set_index("Disease label")
 
-    st.bar_chart(
-        bar_data,
-        horizontal=True,
-        use_container_width=True,
+    render_modern_bar_chart(
+        bar_data.reset_index().rename(
+            columns={"Disease label": "Disease", "Model score (%)": "Score (%)"}
+        ),
+        "Disease", "Score (%)", height=300, color="#16a34a"
     )
 
     st.markdown("### Relative Share of Displayed Model Scores")
@@ -2562,9 +2648,11 @@ def render_symptom_prediction_charts(results):
             histogram_data["Score range"].astype(str)
         )
 
-        st.bar_chart(
-            histogram_data.set_index("Score range"),
-            use_container_width=True,
+        render_modern_bar_chart(
+            histogram_data.rename(
+                columns={"Score range": "Score range", "Number of disease classes": "Count"}
+            ),
+            "Score range", "Count", height=250, color="#3b82f6"
         )
 
 
